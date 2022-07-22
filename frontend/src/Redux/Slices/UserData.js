@@ -12,6 +12,7 @@ export const UserDataSlice = createSlice({
     }
     
 })
+console.log("haiii sign");
 
 export const {signIn} = UserDataSlice.actions;
 export default UserDataSlice.reducer;

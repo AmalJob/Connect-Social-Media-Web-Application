@@ -51,8 +51,9 @@ function Navbar() {
   const [open, setOpen] = useState(false);
   const user = localStorage.getItem("userDetails");
   const navigate = useNavigate();
+  const userdata = useSelector((state) => state.user.value);
+  const PF = process.env.REACT_APP_PUBLIC_FOLDER;
   const handleClick = () => {
-    localStorage.removeItem("userDetails");
     sessionStorage.removeItem("token");
     dispatch(signIn(""));
 
@@ -82,22 +83,30 @@ function Navbar() {
         </Search>
         <Icons>
           <LocationOn />
-          <Badge badgeContent={4} color="error">
-            <Mail />
+          <Badge  badgeContent={4} color="error">
+            <Mail onClick={()=>{navigate('/messenger')}} />
           </Badge>
           <Badge badgeContent={4} color="error">
             <Notifications />
           </Badge>
           <Avatar
             sx={{ width: "35px", height: "35px", objectFit: "cover" }}
-            src="/assets/person/1.png"
+            src={
+              userdata.profilePicture
+                ? PF + userdata.profilePicture
+                : PF + "person/noAvatar.png"
+            }
             onClick={(e) => setOpen(true)}
           />
         </Icons>
         <UserBox onClick={(e) => setOpen(true)}>
           <Avatar
             sx={{ width: "35px", height: "35px", objectFit: "cover" }}
-            src="assets/person/2.jpeg"
+            src={
+              userdata.profilePicture
+                ? PF + userdata.profilePicture
+                : PF + "person/noAvatar.png"
+            }
           />
           <Typography variant="span">Amal</Typography>
         </UserBox>

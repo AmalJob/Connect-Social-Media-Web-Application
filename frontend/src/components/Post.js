@@ -43,6 +43,7 @@ function Post({ post }) {
   const currentUser = JSON.parse(users);
   const PF = process.env.REACT_APP_PUBLIC_FOLDER;
   const userdata = useSelector((state) => state.user.value);
+  console.log("userdata",userdata);
   const commentss = post.comments;
   const [commen, setCommen] = useState(commentss);
   const [posts, setPosts] = useState(commentss);
@@ -68,9 +69,9 @@ function Post({ post }) {
 
 
   useEffect(() => {
-    setIsLiked(post.likes.includes(userdata.user._id));
+    setIsLiked(post.likes.includes(userdata._id));
     setPosts(commentss);
-  }, [userdata.user._id, results]);
+  }, [userdata._id, results]);
   console.log("coooo", posts);
   const makeComment = async (text, postId) => {
     console.log("texttt", text, postId);
@@ -78,7 +79,7 @@ function Post({ post }) {
       .patch("/posts/comment", {
         postId,
         text,
-        username: userdata.user.username,
+        username: userdata.username,
       })
 
       .then((result) => {
@@ -106,7 +107,7 @@ function Post({ post }) {
   const likeHandler = async () => {
     try {
       await axios.put("/posts/" + post._id + "/like", {
-        userId: userdata.user._id,
+        userId: userdata._id,
       });
     } catch (error) {}
 
@@ -122,7 +123,7 @@ function Post({ post }) {
             <Link to={`/profile/${user.username}`}>
               <Avatar
                 src={
-                  PF + userdata.user.profilePicture ||
+                  PF + user.profilePicture ||
                   "/assets/person/noAvatar.png"
                 }
                 aria-label="recipe"
@@ -130,9 +131,10 @@ function Post({ post }) {
             </Link>
           }
           action={
+            userdata.username === user.username &&
             <Link to={`/editpost/${post._id}`}>
               <IconButton aria-label="settings">
-                {userdata.user.username === user.username && <Edit />}
+                <Edit />
               </IconButton>
             </Link>
           }
@@ -153,14 +155,14 @@ function Post({ post }) {
             <Checkbox
               onClick={likeHandler}
               icon={
-                post.likes.includes(userdata.user._id) ? (
+                post.likes.includes(userdata._id) ? (
                   <Favorite />
                 ) : (
                   <FavoriteBorder />
                 )
               }
               checkedIcon={
-                post.likes.includes(userdata.user._id) ? (
+                post.likes.includes(userdata._id) ? (
                   <FavoriteBorder />
                 ) : (
                   <Favorite />
@@ -180,6 +182,7 @@ function Post({ post }) {
         </CardContent>
 
         <Modal
+         sx={{overflow: 'auto'}}
           aria-labelledby="transition-modal-title"
           aria-describedby="transition-modal-description"
           open={open}
@@ -201,9 +204,11 @@ function Post({ post }) {
               </Typography>
               {commen.map((record) => {
                 return (
-                  <Typography id="transition-modal-description" sx={{ mt: 2 }}>
+                  <div>
+                  <Typography  id="transition-modal-description"  sx={{ mt: 2 }}>
                     <span>{record.username}:</span> {record.text}
                   </Typography>
+                  </div>
                 );
               })}
               <CardContent sx={{ marginBottom: 3, marginLeft: -2 }}>

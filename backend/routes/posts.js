@@ -6,7 +6,7 @@ const User = require('../models/User');
 
 // create a post
 
-router.post('/',async(req,res)=>{
+router.post('/', verifyToken, async(req,res)=>{
 
     const post= await new Post(req.body)
     try {
@@ -40,7 +40,7 @@ router.put('/:id',async(req,res)=>{
 
 // delete a post
 
-router.delete('/:id',async(req,res)=>{
+router.delete('/:id', verifyToken, async(req,res)=>{
     try {
         const post= await Post.findById(req.params.id)
         if(post.userId===req.body.userId){
@@ -57,7 +57,7 @@ router.delete('/:id',async(req,res)=>{
 
 // like a post
 
-router.put('/:id/like',async(req,res)=>{
+router.put('/:id/like',  async(req,res)=>{
     try {
         const post = await Post.findById(req.params.id)
         if(!post.likes.includes(req.body.userId)){

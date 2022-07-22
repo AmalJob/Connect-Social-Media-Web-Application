@@ -21,7 +21,7 @@ import { Link } from "react-router-dom";
 
 function Sidebar({ mode, setMode }) {
   const userdata = useSelector((state) => state.user.value);
-  console.log("data", userdata.user);
+  console.log("data", userdata);
   return (
     <Box flex={1} p={3} sx={{ display: { xs: "none", sm: "block" } }}>
       <Box>
@@ -60,7 +60,7 @@ function Sidebar({ mode, setMode }) {
           </ListItem>
           <Link
             style={{ textDecoration: "none" }}
-            to={`/edituserinfo/${userdata.user._id}`}
+            to={`/profile/${userdata.username}`}
           >
             <ListItem disablePadding>
               <ListItemButton component="a" href="#feed">

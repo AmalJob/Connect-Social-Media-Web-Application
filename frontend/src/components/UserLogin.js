@@ -49,8 +49,9 @@ function UserLogin() {
         email: email.current.value,
         password: password.current.value,
       });
-      dispatch(signIn(data));
-      console.log(data);
+      const user = data.user
+      console.log("haiii",data);
+      dispatch(signIn(user));
       localStorage.setItem("userDetails", JSON.stringify(data));
       sessionStorage.setItem("token", JSON.stringify(data.token));
 

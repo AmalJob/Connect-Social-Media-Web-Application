@@ -9,8 +9,9 @@ import { AccountCircle, Password } from "@mui/icons-material";
 import axios from "axios";
 import { useParams } from "react-router";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { signIn } from "../../Redux/Slices/UserData";
+import Swal from "sweetalert2";
 function UserInfo() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -21,12 +22,26 @@ function UserInfo() {
   const [newpassword, setNewPassword] = useState("");
   const [user, setUser] = useState({});
   const [err, setErr] = useState("");
+  const [img, setImg] = useState(null);
+  const [file, setFile] = useState(null);
+  const [mesg, setMesg] = useState(null)
+  const userdata = useSelector((state) => state.user.value);
+  const PF = process.env.REACT_APP_PUBLIC_FOLDER;
+  
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
+  const tok = sessionStorage.getItem("token");
+  const token = JSON.parse(tok);
   useEffect(() => {
     const editpost = async () => {
-      const res = await axios.get(`/users/edituserinfo/${userId}`);
+      const config = {
+        headers: {
+          "Content-type": "application/json",
+          "auth-token": token,
+        },
+      };
+      const res = await axios.get(`/users/edituserinfo/${userId}` , config);
       console.log("poost", res.data);
       setUser(res.data);
       setUsername(res.data.username);
@@ -36,26 +51,40 @@ function UserInfo() {
 
   const updateUsername = async () => {
     try {
+      const config = {
+        headers: {
+          "Content-type": "application/json",
+          "auth-token": token,
+        },
+      };
       const res = await axios.patch("/users/updateusername", {
         username,
         userId: user._id,
-      });
-      console.log("result", res.data.username);
-      //   navigate(`/profile/${userdata.user.username}`)
-      dispatch(signIn({ type: "Update", name: res.data.username }));
+      } , config);
+      const result = res.data
+      console.log("result", res.data);
+      dispatch(signIn(result));
+     window.location.reload()
     } catch (error) {
       console.log(error);
     }
   };
   console.log("new", newpassword);
 
-  const updatePassword = async () => {
+  const updatePassword = async (e) => {
+    e.preventDefault()
     try {
+      const config = {
+        headers: {
+          "Content-type": "application/json",
+          "auth-token": token,
+        },
+      };
       const res = await axios.patch("/users/updatepassword", {
         password,
         newpassword,
         userId: user._id,
-      });
+      } , config);
       console.log("result", res);
       //   navigate(`/profile/${userdata.user.username}`)
     } catch (error) {
@@ -63,7 +92,65 @@ function UserInfo() {
       setErr(error.response.data);
     }
   };
+  const onImageChange = (event) => {
+    setFile(event.target.files[0]);
+    if (event.target.files && event.target.files[0]) {
+      let reader = new FileReader();
+      reader.onload = (e) => {
+        setImg(e.target.result);
+      };
+      reader.readAsDataURL(event.target.files[0]);
+    }
+  };
+  const submitHandler = async (e) => {
+    e.preventDefault();
+  
+   
+    if (file) {
+      const data = new FormData();
+      const fileName = Date.now() + file.name;
+      data.append("name", fileName);
+      data.append("file", file);
+      var image = fileName;
+      console.log(image);
+      try {
+        await axios.post("/upload", data);
+      } catch (err) {
+        console.log(err);
+      }
+    
+    try {
+      const config = {
+        headers: {
+          "Content-type": "application/json",
+          "auth-token": token,
+        },
+      };
 
+   const res =  await axios.patch("/users/updateprofilePicture",  {image,  userId: user._id,} );
+    const respons = res.data
+console.log("updat",res.data);
+dispatch(signIn(respons)); 
+Swal.fire({
+  // position: 'top-end',
+  icon: 'success',
+  title: 'Profile Picture Updated',
+  showConfirmButton: false,
+  timer: 1500
+})
+setFile(null)
+    } catch (error) {}
+  }else{
+    Swal.fire({
+      // position: 'top-right',
+      icon: 'info',
+      title: 'Please select Image',
+      showConfirmButton: false,
+      timer: 1500
+    })
+  }
+  }
+console.log("pic",user.profilePicture);
   return (
     <>
       <Navbar />
@@ -85,6 +172,7 @@ function UserInfo() {
               >
                 <Tab label="Username" value="1" />
                 <Tab label="Password" value="2" />
+                <Tab label="Profile Pic" value="3" />
               </TabList>
             </Box>
             <TabPanel value="1">
@@ -114,9 +202,11 @@ function UserInfo() {
               </Button>
             </TabPanel>
             <TabPanel value="2">
+              <form action="">
               <Box sx={{ display: "flex", alignItems: "flex-end" }}>
                 <Password sx={{ color: "action.active", mr: 1, my: 0.5 }} />
                 <TextField
+                  required
                   placeholder="******"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -127,6 +217,7 @@ function UserInfo() {
               </Box>
               <Password sx={{ color: "action.active", mr: 1, my: 0.5 }} />
               <TextField
+              required
                 id="input-with-sx"
                 value={newpassword}
                 onChange={(e) => setNewPassword(e.target.value)}
@@ -146,6 +237,51 @@ function UserInfo() {
                   update
                 </Button>
               </div>
+              </form>
+            </TabPanel>
+            <TabPanel value="3">
+              
+              <form action="">
+              <Box sx={{ display: "flex", justifyContent:'center', alignItems: "center" }}>
+              <label htmlFor="file">
+                <img  src={
+                    img ? img :  user.profilePicture
+                        ? PF + user.profilePicture 
+                        : PF + "person/noAvatar.png"
+                      // img
+                    } 
+                    id="target"
+                     style={{ borderRadius: '50%' , width:150 , height:150, objectFit:'cover'}}/>
+             
+              <input
+                style={{ display: "none" }}
+                type="file"
+                id="file"
+                accept=".png, .jpeg, .jpg"
+                // onChange={(e) =>
+                //   setFile(e.target.files[0])}
+                onChange={onImageChange}
+              />
+            </label>
+              {/* <div > */}
+                     
+                {/* </div> */}
+              </Box>
+             
+              <div>
+                <Button
+                  onClick={submitHandler}
+                  sx={{
+                    backgroundColor: "blue",
+                    color: "white",
+                    mt: 2,
+                    marginLeft: 14,
+                  }}
+                >
+                  update
+                </Button>
+              </div>
+              </form>
             </TabPanel>
           </TabContext>
         </Box>

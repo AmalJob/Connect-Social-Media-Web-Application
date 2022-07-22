@@ -13,6 +13,7 @@ import { useParams } from "react-router";
 import { useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import Swal from "sweetalert2";
+import {Audio} from 'react-loader-spinner'
 function EditPost() {
   const navigate = useNavigate();
   const postId = useParams().postId;
@@ -55,7 +56,7 @@ function EditPost() {
         config
       );
       console.log("result", res);
-      navigate(`/profile/${userdata.user.username}`);
+      navigate(`/profile/${userdata.username}`);
     } catch (error) {
       console.log(error);
     }
@@ -73,10 +74,16 @@ function EditPost() {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const res = await axios.delete(`/posts/deletePost/${postId}`);
+          const config = {
+            headers: {
+              "Content-type": "application/json",
+              "auth-token": token,
+            },
+          };
+          const res = await axios.delete(`/posts/deletePost/${postId}` , config);
           if (res) {
             Swal.fire("Deleted!", "Your file has been deleted.", "success");
-            navigate(`/profile/${userdata.user.username}`);
+            navigate(`/profile/${userdata.username}`);
           }
         } catch (error) {
           console.log(error);
@@ -104,14 +111,14 @@ function EditPost() {
           justifyContent: "center",
         }}
       >
-        <Card sx={{ maxWidth: 345, marginTop: 10 }}>
+      { post ? <Card sx={{ maxWidth: 345, marginTop: 10 }}>
           <CardActionArea>
-            <CardMedia
+          { post.img && <CardMedia
               component="img"
               height="140"
               image={PF + post.img}
               alt="green iguana"
-            />
+            />}
             <CardContent>
               <TextField
                 value={desc}
@@ -135,7 +142,20 @@ function EditPost() {
             </Button>
             <Button onClick={() => deletePost()}>delete</Button>
           </CardActionArea>
-        </Card>
+        </Card> : 
+        (
+          <div
+            style={{
+              margin: "30px auto",
+              maxWidth: "150px",
+              padding: "20px",
+              textAlign: "center",
+              marginTop: "100px",
+            }}
+          >
+            <Audio height="100" width="100" color="red" ariaLabel="loading" />
+          </div>
+        ) }
       </div>
     </>
   );

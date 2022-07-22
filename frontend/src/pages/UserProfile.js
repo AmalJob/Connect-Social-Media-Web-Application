@@ -8,15 +8,22 @@ import axios from "axios";
 import { useParams } from "react-router";
 import Rightbar from "../components/Rightbar/Rightbar";
 import Sidebar from "../components/Sidebar";
-import { Add } from "@mui/icons-material";
+import { Add, Edit } from "@mui/icons-material";
 import { useSelector, useDispatch } from "react-redux";
-
+import {Link, useNavigate} from 'react-router-dom'
+import { Audio } from "react-loader-spinner";
 function UserProfile() {
   const [user, setUser] = useState({});
   const username = useParams().username;
   const userdata = useSelector((state) => state.user.value);
   console.log("data", userdata.user);
   const PF = process.env.REACT_APP_PUBLIC_FOLDER;
+  const navigate = useNavigate()
+  useEffect(()=>{
+    if(!sessionStorage.getItem('token')){
+       navigate('/login')
+    }
+  })
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -38,7 +45,7 @@ function UserProfile() {
     <>
       <Box bgcolor={"background.default"} color={"text.primary"}>
         <Navbar />
-        <Card sx={{ mt: 1 }}>
+       { user ? <Card sx={{ mt: 1 }}>
           <div className="profile">
             <div className="profileRight">
               <div className="profileRightTop">
@@ -64,7 +71,13 @@ function UserProfile() {
                 </div>
                 <div className="profileInfo">
                   <h4 className="profileInfoName">{user.username}</h4>
-                  <span className="profileInfoDesc">{user.desc}</span>
+                  <Link
+                    style={{ textDecoration: "none" }}
+                    to={`/edituserinfo/${userdata._id}`} 
+                  >
+            { userdata.username === user.username &&      <Edit /> }
+            </Link>
+                  {/* <span className="profileInfoDesc">{user.desc}</span> */}
                   {/* {username !==userdata.user.username && (
       <Button sx={{backgroundColor:'blue', color:'white' }} onClick={handleFollow} > 
         Follow <Add/>
@@ -74,7 +87,20 @@ function UserProfile() {
               </div>
             </div>
           </div>
-        </Card>
+        </Card> : 
+         (
+          <div
+            style={{
+              margin: "30px auto",
+              maxWidth: "150px",
+              padding: "20px",
+              textAlign: "center",
+              marginTop: "100px",
+            }}
+          >
+            <Audio height="100" width="100" color="red" ariaLabel="loading" />
+          </div>
+        )}
         <Stack direction="row" spacing={2} justifyContent="space-between">
           <Sidebar pos />
 

@@ -18,12 +18,14 @@ import { useSelector } from "react-redux";
 function AddPost({ fetchpost }) {
   const PF = process.env.REACT_APP_PUBLIC_FOLDER;
   const userdata = useSelector((state) => state.user.value);
-  console.log("state dtas", userdata.user.username);
+  console.log("state dtas", userdata);
   const desc = useRef();
   const [file, setFile] = useState(null);
   const [img, setImg] = useState(null);
   const [descrip, setDescrip] = useState("");
-
+  const [err, setErr] = useState(null);
+  const tok = sessionStorage.getItem("token");
+  const token = JSON.parse(tok);
   const onImageChange = (event) => {
     setFile(event.target.files[0]);
     if (event.target.files && event.target.files[0]) {
@@ -38,7 +40,7 @@ function AddPost({ fetchpost }) {
   const submitHandler = async (e) => {
     e.preventDefault();
     const newPost = {
-      userId: userdata.user._id,
+      userId: userdata._id,
       desc: desc.current.value,
     };
     setDescrip("");
@@ -56,10 +58,22 @@ function AddPost({ fetchpost }) {
       }
     }
     try {
-      await axios.post("/posts", newPost);
-      fetchpost();
+      const config = {
+        headers: {
+          "Content-type": "application/json",
+          "auth-token": token,
+        },
+      };
+        if(descrip || file){
 
-      setImg(null);
+          await axios.post("/posts", newPost , config);
+          fetchpost();
+    
+          setImg(null);
+          setFile(null)
+        }else{
+           setErr("please do something")
+        }
     } catch (error) {}
   };
 
@@ -73,14 +87,14 @@ function AddPost({ fetchpost }) {
   return (
     <>
       <Card sx={{ maxWidth: 610, margin: 5 }}>
-        {/* <Typography variant="h6" color="gray" textAlign="center">
-          Create Post
-        </Typography> */}
+       { err && <Typography variant="h6" color="gray" textAlign="center">
+       {err}
+        </Typography>}
         <form onSubmit={submitHandler}>
           <UserBox sx={{ marginLeft: 2 }}>
-            <Avatar src={PF + userdata.user.profilePicture} />
+            <Avatar src={PF + userdata.profilePicture} />
             <Typography variant="span" fontWeight={500}>
-              {userdata.user.username}
+              {userdata.username}
             </Typography>
           </UserBox>
           {/* <CardMedia
@@ -97,7 +111,7 @@ function AddPost({ fetchpost }) {
                 multiline
                 rows={3}
                 placeholder={
-                  "Whats on your mind " + userdata.user.username + "?"
+                  "Whats on your mind " + userdata.username + "?"
                 }
                 variant="standard"
                 value={descrip}

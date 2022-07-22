@@ -24,7 +24,7 @@ function Feed({ username, home }) {
     };
     const res = username
       ? await axios.get("/posts/profile/" + username, config)
-      : await axios.get(`posts/timeline/${userdata.user._id}`, config);
+      : await axios.get(`posts/timeline/${userdata._id}`, config);
 
     setPosts(
       res.data.sort((p1, p2) => {
@@ -37,7 +37,7 @@ function Feed({ username, home }) {
   }, []);
   return (
     <Box flex={4} p={2}>
-      {username == userdata.user.username && (
+      {username == userdata.username && (
         <CreatePost fetchpost={fetchPosts} />
       )}
       {home && <CreatePost fetchpost={fetchPosts} />}

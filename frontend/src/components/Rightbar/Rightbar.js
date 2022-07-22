@@ -39,17 +39,24 @@ function Rightbar({ user }) {
   const users = localStorage.getItem("userDetails");
   const currentUser = JSON.parse(users);
   const userdata = useSelector((state) => state.user.value);
-  console.log("data", userdata.user);
-
+  console.log("datahellooo", userdata);
+  const tok = sessionStorage.getItem("token");
+  const token = JSON.parse(tok);
   const PF = process.env.REACT_APP_PUBLIC_FOLDER;
   useEffect(() => {
-    setFollowed(userdata.user.following.includes(user?._id));
+    setFollowed(userdata.following.includes(user?._id));
   }, [user?._id]);
 
   useEffect(() => {
     const getFriends = async () => {
       try {
-        const friendList = await axios.get("/users/friends/"+userdata.user._id);
+        const config = {
+          headers: {
+            "Content-type": "application/json",
+            "auth-token": token,
+          },
+        };
+        const friendList = await axios.get("/users/friends/"+userdata._id , config);
         setFriends(friendList.data);
       } catch (err) {
         console.log(err);
@@ -61,18 +68,32 @@ function Rightbar({ user }) {
   const handleFollow = async () => {
     try {
       if (followed) {
+        const config = {
+          headers: {
+            "Content-type": "application/json",
+            "auth-token": token,
+          },
+        };
         const res = await axios.put("/users/" + user._id + "/unfollow", {
-          userId: currentUser.user._id,
-        });
-        console.log("unfollow", res);
-        // dispatch( signIn(''))
-        //  dispatch( signIn(res))
+          userId: userdata._id,
+        } , config);
+        const respo= res.data
+        console.log("respo", respo);
+        dispatch( signIn(respo))
+        //  dispatch( signIn("hellooooo"))
       } else {
+        const config = {
+          headers: {
+            "Content-type": "application/json",
+            "auth-token": token,
+          },
+        };
         const response = await axios.put("/users/" + user._id + "/follow", {
-          userId: currentUser.user._id,
-        });
-        console.log("follow", response);
-        // dispatch( signIn(''))
+          userId: userdata._id,
+        }, config);
+        const resp= response.data
+        console.log("resp",resp);
+        dispatch( signIn(resp))
         //  dispatch( signIn(response))
       }
     } catch (error) {
@@ -137,7 +158,7 @@ function Rightbar({ user }) {
   const ProfileRightbar = () => {
     return (
       <>
-        {user.username !== userdata.user.username && (
+        {user.username !== userdata.username && (
           <button class="custom-btn btn-3" onClick={handleFollow}>
             <span>
               {followed ? "Unfollow" : "Follow"}
@@ -155,7 +176,7 @@ function Rightbar({ user }) {
             <ListSubheader component="div" id="nested-list-header">
               <span>
                 <h1>
-                  About Information <Edit />{" "}
+                  About Information 
                 </h1>
               </span>
             </ListSubheader>

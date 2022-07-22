@@ -1,7 +1,7 @@
 const router=require('express').Router();
 const User=require('../models/User')
 const bcrypt=require('bcrypt')
-
+const { verifyToken } = require('../middlewares/SessionCheck');
 // update a user
 
 router.put('/:id',async(req,res)=>{
@@ -61,7 +61,7 @@ router.get("/", async (req, res) => {
   });
 // follow a user
 
-router.put('/:id/follow',async(req,res)=>{
+router.put('/:id/follow', verifyToken, async(req,res)=>{
     if(req.body.userId !== req.params.id){
         try {
             const user= await User.findById(req.params.id)
@@ -86,7 +86,7 @@ router.put('/:id/follow',async(req,res)=>{
 
 // unfollow a user
 
-router.put('/:id/unfollow',async(req,res)=>{
+router.put('/:id/unfollow', verifyToken, async(req,res)=>{
     if(req.body.userId !== req.params.id){
         try {
             const user= await User.findById(req.params.id)
@@ -111,7 +111,7 @@ router.put('/:id/unfollow',async(req,res)=>{
 
 // get friends list
 
-router.get('/friends/:userId',async(req,res)=>{
+router.get('/friends/:userId', verifyToken, async(req,res)=>{
     try {
         const user = await User.findById(req.params.userId);
         const friends = await Promise.all(
@@ -132,7 +132,7 @@ router.get('/friends/:userId',async(req,res)=>{
 
 // update a user info
 
-router.get('/edituserinfo/:userId',async(req,res)=>{
+router.get('/edituserinfo/:userId', verifyToken, async(req,res)=>{
     console.log("pooooo",req.params.userId);
     try {
         const user = await  User.findOne({_id:req.params.userId})
@@ -146,7 +146,7 @@ router.get('/edituserinfo/:userId',async(req,res)=>{
  
 })
 
-router.patch('/updateusername',async(req,res)=>{
+router.patch('/updateusername', verifyToken, async(req,res)=>{
     console.log("body");
     const {username, userId} = req.body
     console.log('haiii ',username,userId);
@@ -157,7 +157,9 @@ router.patch('/updateusername',async(req,res)=>{
         ,{
             new:true,
         })
-            res.status(200).json(user)
+        const updatedUser=  await User.findById(userId)
+        console.log("updat",updatedUser);
+            res.status(200).json(updatedUser)
         
     
   } catch (error) {
@@ -167,7 +169,7 @@ router.patch('/updateusername',async(req,res)=>{
     
 })
 
- router.patch('/updatepassword',async(req,res)=>{
+ router.patch('/updatepassword', verifyToken, async(req,res)=>{
     const {password, newpassword, userId} = req.body
      console.log("amal",password,newpassword,userId);
     
@@ -205,7 +207,7 @@ router.patch('/updateusername',async(req,res)=>{
  }) 
 
  //get friends
-router.get("/friends/:userId", async (req, res) => {
+router.get("/friends/:userId",verifyToken, async (req, res) => {
     console.log("para",req.params);
     try {
       const user = await User.findById(req.params.userId);
@@ -224,5 +226,30 @@ router.get("/friends/:userId", async (req, res) => {
       res.status(500).json(err);
     }
   });
+
+   // update profile pic
+
+   router.patch('/updateprofilePicture', async(req,res)=>{
+    console.log("body");
+    const {image, userId} = req.body
+    console.log('haiii ',image,userId);
+  try {
+ const user =   await User.findByIdAndUpdate(userId,{
+        profilePicture: image
+     }
+        ,{
+            new:true,
+        })
+        const updatedUser=  await User.findById(userId)
+        console.log("updat",updatedUser);
+            res.status(200).json(updatedUser)
+        
+    
+  } catch (error) {
+    console.log(error);
+    res.status(500).json(error)
+  }
+    
+})
 
 module.exports=router;
